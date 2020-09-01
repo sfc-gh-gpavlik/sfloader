@@ -1,7 +1,7 @@
 # sfloader
 Snowflake File Loader
 
-Note: This software is a community project, not official Snowflake software and released under the Apache 2.0 License.
+Note: This software is a community project released under the Apache 2.0 License, not official Snowflake software.
 
 sfloader puts files from an on premises source to a Snowflake managed stage. While putting files to a Snowflake managed stage is simple, putting hundreds of thousands or millions of files introduces some challenges such as bandwidth management, parallelism, and keeping track of successful uploads.
 
