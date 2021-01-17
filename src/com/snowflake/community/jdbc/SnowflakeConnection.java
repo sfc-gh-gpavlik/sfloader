@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Snowflake Computing Inc. All rights reserved.
+ * Copyright (c) 2020, 2021 Snowflake Computing Inc. All rights reserved.
  */
 
 package com.snowflake.community.jdbc;
@@ -208,7 +208,7 @@ public class SnowflakeConnection {
 		Properties props = new Properties();
 		props.put("user", user);
 		props.put("password", password);
-		props.put("insecureMode", "true"); 		//TURN OFF OCSP CHECK!!! Causing BIG problems.
+		props.put("insecureMode", "true"); 		//Turn off OCSP check by default.
 		if (extraProps != null) {
 			Set<String> keys = extraProps.stringPropertyNames();
 		    for (String key : keys) {
