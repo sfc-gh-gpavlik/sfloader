@@ -19,8 +19,10 @@ import com.snowflake.community.utils.Reflection;
 
 public class SqliteManager {
 	
+	// Hard-coded paths for development locations for reflection to use to create or use the SQLite DB.
+	// Adjust for your development environment and preferred development runtime database location.
 	private static String WIN_IDE_PATH = "C:\\Dev\\eclipse-db\\sfloader";
-	private static String MAC_IDE_PATH = "/Users/gpavlik/eclipse-db/sfloader";
+	private static String MAC_IDE_PATH = "/USERS/Shared/eclipse-db/sfloader";
 	
 	private static Connection conn = null;
 	private static String dbDirectory = null;
