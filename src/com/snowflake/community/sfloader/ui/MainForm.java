@@ -1015,10 +1015,10 @@ public class MainForm {
 		snowflakeConnection.setUser(StateControl.getSnowflakeLogin());
 		
 		try {
-			// MFA HERE!!!!!!
-//--------->			//Properties props = new Properties();			<------------- Multi-Factor Authentication.
+                        //Properties props = new Properties();			<------------- Multi-Factor Authentication options.
 			//props.put("passcode", "12345678");
 			//snowflakeConnection.setConnectionProperties(props);
+			//Snowflake built-in Duo MFA works without requirements to add properties to the connection
 			
 			snowflakeConnection.getConnection();
 			snowflakeConnectionStatus.setText("Connected to Snowflake.");
