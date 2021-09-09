@@ -6,7 +6,7 @@ public class License {
 		
 		return  "\n" +
 				"                     Snowflake File Loader\n" +
-				"Copyright (c) 2020 Snowflake Computing Inc. All rights reserved.\n" + 
+				"Copyright (c) 2020, 2021 Snowflake Computing Inc. All rights reserved.\n" + 
 				"\n" + 
 				"Licensed under the Apache License, Version 2.0 (the \"License\");\n" + 
 				"you may not use this file except in compliance with the License.\n" + 
