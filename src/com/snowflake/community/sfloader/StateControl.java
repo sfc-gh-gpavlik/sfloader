@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Snowflake Computing Inc. All rights reserved.
+ * Copyright (c) 2020, 2021 Snowflake Computing Inc. All rights reserved.
  */
 
 package com.snowflake.community.sfloader;
@@ -118,6 +118,7 @@ public class StateControl {
 	
 	public static void setDatabase(String database) {
 		_database = database;
+		setPutStatement("");
 		SqliteManager.setStoredProperty("SNOWFLAKE_DATABASE", database);
 	}
 	
@@ -127,6 +128,7 @@ public class StateControl {
 	
 	public static void setSchema(String schema) {
 		_schema = schema;
+		setPutStatement("");
 		SqliteManager.setStoredProperty("SNOWFLAKE_SCHEMA", schema);
 	}
 	
@@ -136,6 +138,7 @@ public class StateControl {
 	
 	public static void setStage(String stage) {
 		_stage = stage;
+		setPutStatement("");
 		SqliteManager.setStoredProperty("SNOWFLAKE_STAGE", stage);
 	}
 	
@@ -208,6 +211,7 @@ public class StateControl {
 	
 	public static void setOverwriteExisting(String overwriteExisting) {
 		_overwriteExisting = Boolean.parseBoolean(overwriteExisting);
+		setPutStatement("");
 		SqliteManager.setStoredProperty(OVERWRITE_EXISTING, overwriteExisting);		
 	}
 	
@@ -220,6 +224,7 @@ public class StateControl {
 			String compression = sourceCompression.toUpperCase().trim();
 			if (SUPPORTED_COMPRESSION.contains("| " + compression + " |")) {
 				_sourceCompression = sourceCompression;
+				setPutStatement("");
 				SqliteManager.setStoredProperty(SOURCE_COMPRESSION, compression);		
 			} else {
 				throw new IllegalArgumentException("Unsupported source compression type. Use one of: " + SUPPORTED_COMPRESSION);
