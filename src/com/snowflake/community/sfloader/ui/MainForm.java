@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Snowflake Computing Inc. All rights reserved.
+ * Copyright (c) 2020, 2021 Snowflake Computing Inc. All rights reserved.
  */
 
 package com.snowflake.community.sfloader.ui;
@@ -339,7 +339,7 @@ public class MainForm {
 				}
 			}
 		});
-		btnUnlockSnowflake.setBounds(889, 464, 135, 29);
+		btnUnlockSnowflake.setBounds(905, 479, 135, 29);
 		panel_Files.add(btnUnlockSnowflake);
 		
 		JSeparator separator = new JSeparator();
@@ -361,9 +361,7 @@ public class MainForm {
 		tabbedPane.addTab("Connect to Snowflake", null, panel_Snowflake, null);
 		tabbedPane.setEnabledAt(1, true);
 		tabs.setDisabledIconAt(1, new ImageIcon(MainForm.class.getResource(RESOURCE_PATH + "/images/lock.png")));
-				
-		// DON'T JUST SET TO FALSE!!!! CHECK THE VALIDATION STATEMENTS!!!
-		tabs.setEnabledAt(SNOWFLAKE_PANE, false);
+		tabs.setEnabledAt(1, false);
 		panel_Snowflake.setLayout(null);
 				
 		textSnowflakeAccount = new JTextField();
@@ -474,6 +472,7 @@ public class MainForm {
 					public void itemStateChanged(ItemEvent arg0) {
 						if (comboBoxSFDatabase.getSelectedIndex() != -1) {
 							StateControl.setDatabase(sfDatabase.getSelectedItem().toString());
+							textPutStatement.setText("");
 							sfSchema.setModel(new DefaultComboBoxModel<String>(SnowflakeObjectInfo.getSchemata(snowflakeConnection, StateControl.getDatabase())));
 							Log.log("Selected database: " + StateControl.getDatabase());
 						} else {
@@ -504,6 +503,7 @@ public class MainForm {
 					public void itemStateChanged(ItemEvent arg0) {
 						if (comboBoxSFSchema.getSelectedIndex() != -1) {
 							StateControl.setSchema(sfSchema.getSelectedItem().toString());
+							textPutStatement.setText("");
 							sfStage.setModel(new DefaultComboBoxModel<String>(SnowflakeObjectInfo.getStages(snowflakeConnection, 
 									StateControl.getDatabase(), StateControl.getSchema())));
 							Log.log("Selected schema: " + StateControl.getSchema());
@@ -532,6 +532,7 @@ public class MainForm {
 					public void itemStateChanged(ItemEvent arg0) {
 						if (comboBoxSFStage.getSelectedIndex() != -1) {
 							StateControl.setStage(comboBoxSFStage.getSelectedItem().toString());
+							textPutStatement.setText("");
 							Log.log("Selected stage: " + StateControl.getStage());
 						} else {
 							if (!isInitializing) {
@@ -597,7 +598,7 @@ public class MainForm {
 						}
 					}
 				});
-				btnUnlockPutTab.setBounds(889, 464, 135, 29);
+				btnUnlockPutTab.setBounds(905, 479, 135, 29);
 				panel_Snowflake.add(btnUnlockPutTab);
 				sfDatabase = comboBoxSFDatabase;
 				sfSchema = comboBoxSFSchema;
@@ -636,7 +637,7 @@ public class MainForm {
 				tabbedPane.setDisabledIconAt(2, new ImageIcon(MainForm.class.getResource(RESOURCE_PATH + "/images/lock.png")));
 				tabbedPane.setEnabledAt(2, true);
 				
-				tabs.setEnabledAt(PUT_PANE, false);
+				tabs.setEnabledAt(2, false);
 				panel_PUT.setLayout(null);
 				
 				JComboBox<String> comboBoxCompression = new JComboBox<String>();
@@ -645,6 +646,7 @@ public class MainForm {
 				comboBoxCompression.addItemListener(new ItemListener() {
 					public void itemStateChanged(ItemEvent arg0) {
 						if (comboBoxCompression.getSelectedIndex() != -1) {
+							textPutStatement.setText("");
 							StateControl.setSourceCompression(comboBoxCompression.getSelectedItem().toString());
 						}
 					}
@@ -664,6 +666,7 @@ public class MainForm {
 					public void itemStateChanged(ItemEvent e) {
 						StateControl.setOverwriteExisting(
 								chckbxOverwriteExistingFiles.isSelected() == true ? "TRUE" : "FALSE");
+						textPutStatement.setText("");
 					}
 				});
 				chckbxOverwriteExistingFiles.setBounds(35, 62, 363, 23);
@@ -745,7 +748,7 @@ public class MainForm {
 						}
 					}
 				});
-				btnUnlockCopyTab.setBounds(889, 464, 135, 29);
+				btnUnlockCopyTab.setBounds(905, 479, 135, 29);
 				panel_PUT.add(btnUnlockCopyTab);
 				
 				JLabel lblNewLabel_11 = new JLabel("NOTE: Do not use AUTO_DETECT for uncompressed source files. Use \"NONE\".");
@@ -781,6 +784,35 @@ public class MainForm {
 			});
 		tabbedPane.setDisabledIconAt(0, new ImageIcon(MainForm.class.getResource(RESOURCE_PATH + "/images/lock.png")));
 		panel_Files.setLayout(null);
+
+		inventoryFiles = buttonInventoryFiles;
+		filesInventory = lblFileInventory;
+		filesInventory.setText("Inventory has " + StateControl.getInventoriedFileCount() + " files.");
+		
+		JLabel lblNewLabel_6_1_1 = new JLabel("Inventory Local Files:");
+		lblNewLabel_6_1_1.setFont(new Font("Lucida Grande", Font.PLAIN, 16));
+		lblNewLabel_6_1_1.setBounds(20, 359, 576, 32);
+		panel_Files.add(lblNewLabel_6_1_1);
+		
+		JLabel lblNewLabel_6_1_1_1 = new JLabel("Pattern Match Files (Optional):");
+		lblNewLabel_6_1_1_1.setFont(new Font("Lucida Grande", Font.PLAIN, 16));
+		lblNewLabel_6_1_1_1.setBounds(20, 180, 576, 32);
+		panel_Files.add(lblNewLabel_6_1_1_1);
+				
+		JButton btnEditSQLiteDB = new JButton("Unlock Database");
+		btnEditSQLiteDB.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+			
+				try {
+					SqliteManager.closeConnection();
+					MessageBox.show(frame, "Database unlocked. Path is: \n" + SqliteManager.getDbPath(), "Unlock Database");
+				} catch (SQLException e) {
+					Log.logException(e);
+				}	
+			}
+		});
+		btnEditSQLiteDB.setBounds(181, 464, 163, 29);
+		panel_Files.add(btnEditSQLiteDB);
 		
 		JPanel panel_Loader = new JPanel();
 		tabbedPane.addTab("Load Files", null, panel_Loader, null);
@@ -799,12 +831,12 @@ public class MainForm {
 		comboBoxLoaderThreads.setModel(new DefaultComboBoxModel<Integer>(new Integer[] 
 				{1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024}));
 		comboBoxLoaderThreads.setSelectedIndex(2);
-		comboBoxLoaderThreads.setBounds(534, 39, 135, 27);
+		comboBoxLoaderThreads.setBounds(184, 25, 135, 27);
 		panel_Loader.add(comboBoxLoaderThreads);
 		
 		JLabel lblNewLabel_12 = new JLabel("Parallel PUT Uploads:");
 		lblNewLabel_12.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblNewLabel_12.setBounds(307, 43, 215, 16);
+		lblNewLabel_12.setBounds(6, 29, 166, 16);
 		panel_Loader.add(lblNewLabel_12);
 		
 		JButton btnStopLoad = new JButton("Stop Load");
@@ -817,121 +849,97 @@ public class MainForm {
 			}
 		});
 		btnStopLoad.setEnabled(false);
-		btnStopLoad.setBounds(456, 479, 135, 29);
+		btnStopLoad.setBounds(758, 479, 135, 29);
 		panel_Loader.add(btnStopLoad);
 		
 		JProgressBar progressBarFileStaging = new JProgressBar();
-		progressBarFileStaging.setBounds(6, 332, 1034, 20);
+		progressBarFileStaging.setBounds(6, 176, 1034, 20);
 		panel_Loader.add(progressBarFileStaging);
 		
 		JProgressBar progressBarGBStaging = new JProgressBar();
-		progressBarGBStaging.setBounds(6, 380, 1034, 20);
+		progressBarGBStaging.setBounds(6, 222, 1034, 20);
 		panel_Loader.add(progressBarGBStaging);
-	
-		JButton btnStartLoad = new JButton("Start Load");
-		btnStartLoad.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				StateControl.setPutStatement(textAreaPutStatement.getText());
-				btnStartLoad.setEnabled(false);
-				btnStopLoad.setEnabled(false);
-				try {
-					Connection conn = SqliteManager.getConnection();
-					Statement stmt = conn.createStatement();
-					ResultSet rs = stmt.executeQuery("select * from GET_STAGE_INFO;");
-					progressBarFileStaging.setMaximum(rs.getInt("FILES_TO_STAGE"));
-					bytesToStage = rs.getLong("BYTES_TO_STAGE");
-					progressBarGBStaging.setMaximum(1000);
-				} catch (SQLException e) {
-					Log.logException(e);
+		
+			JButton btnStartLoad = new JButton("Start Load");
+			btnStartLoad.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent arg0) {
+					StateControl.setPutStatement(textAreaPutStatement.getText());
+					btnStartLoad.setEnabled(false);
+					btnStopLoad.setEnabled(false);
+					try {
+						Connection conn = SqliteManager.getConnection();
+						Statement stmt = conn.createStatement();
+						ResultSet rs = stmt.executeQuery("select * from GET_STAGE_INFO;");
+						progressBarFileStaging.setMaximum(rs.getInt("FILES_TO_STAGE"));
+						bytesToStage = rs.getLong("BYTES_TO_STAGE");
+						progressBarGBStaging.setMaximum(1000);
+					} catch (SQLException e) {
+						Log.logException(e);
+					} catch (ClassNotFoundException e) {
+						Log.logException(e);
+					}
+					FileLoader.loadFiles(StateControl.getThreadCount());
+					fileStagerTimer.start();
 				}
-				FileLoader.loadFiles(StateControl.getThreadCount());
-				fileStagerTimer.start();
-			}
-		});
-		btnStartLoad.setBounds(456, 438, 135, 29);
-		panel_Loader.add(btnStartLoad);
-		
-		JLabel lblFileStaging = new JLabel("Files Staged:");
-		lblFileStaging.setBounds(6, 316, 1034, 16);
-		panel_Loader.add(lblFileStaging);
-		
-		JLabel lblFileLoading = new JLabel("Data Staged:");
-		lblFileLoading.setBounds(6, 364, 1034, 16);
-		panel_Loader.add(lblFileLoading);
-		
-		JLabel lblNewLabel_6 = new JLabel("Files staged:");
-		lblNewLabel_6.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblNewLabel_6.setBounds(6, 229, 113, 16);
-		panel_Loader.add(lblNewLabel_6);
-		
-		JLabel lblNewLabel_6_2 = new JLabel("GB staged:");
-		lblNewLabel_6_2.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblNewLabel_6_2.setBounds(6, 257, 113, 16);
-		panel_Loader.add(lblNewLabel_6_2);
-		
-		JLabel lblFilesStaged = new JLabel("0");
-		lblFilesStaged.setBounds(131, 229, 373, 16);
-		panel_Loader.add(lblFilesStaged);
-		
-		JLabel lblGbStaged = new JLabel("0");
-		lblGbStaged.setBounds(131, 257, 373, 16);
-		panel_Loader.add(lblGbStaged);
-		
-		JLabel lblNewLabel_6_3 = new JLabel("Staging threads:");
-		lblNewLabel_6_3.setHorizontalAlignment(SwingConstants.RIGHT);
-		lblNewLabel_6_3.setBounds(6, 201, 115, 16);
-		panel_Loader.add(lblNewLabel_6_3);
-		
-		JLabel lblStagingThreads = new JLabel("0");
-		lblStagingThreads.setBounds(131, 201, 373, 16);
-		panel_Loader.add(lblStagingThreads);
-
-		inventoryFiles = buttonInventoryFiles;
-		filesInventory = lblFileInventory;
-		filesInventory.setText("Inventory has " + StateControl.getInventoriedFileCount() + " files.");
-		
-		JLabel lblNewLabel_6_1_1 = new JLabel("Inventory Local Files:");
-		lblNewLabel_6_1_1.setFont(new Font("Lucida Grande", Font.PLAIN, 16));
-		lblNewLabel_6_1_1.setBounds(20, 359, 576, 32);
-		panel_Files.add(lblNewLabel_6_1_1);
-		
-		JLabel lblNewLabel_6_1_1_1 = new JLabel("Pattern Match Files (Optional):");
-		lblNewLabel_6_1_1_1.setFont(new Font("Lucida Grande", Font.PLAIN, 16));
-		lblNewLabel_6_1_1_1.setBounds(20, 180, 576, 32);
-		panel_Files.add(lblNewLabel_6_1_1_1);
-		
-	    fileStagerTimer = new Timer(100, new ActionListener() {
-	        public void actionPerformed(ActionEvent evt) {
-
-	        	lblGbStaged.setText(Double.toString(FileLoader.getGigabytesStaged()));
-	        	lblFilesStaged.setText(Long.toString(FileLoader.getFilesStaged()));
-	       		lblStagingThreads.setText(Integer.toString(FileLoader.threadsStaging()));
-	       		progressBarFileStaging.setValue((int)FileLoader.getFilesStaged());
-	       		progressBarGBStaging.setValue((int)(((double)FileLoader.getBytesStaged() / (double)bytesToStage) * 1000.0));
-	       		btnStartLoad.setEnabled(!FileLoader.isRunning());
-	       		btnStopLoad.setEnabled(FileLoader.isRunning() && !FileLoader.isStopped());
-	        	if (!FileLoader.isRunning()) {
-	        		fileStagerTimer.stop();
-	        		MessageBox.show(frame, "Staged all files.", "Staging Complete");
-	        	}
-	        }
-	    });
-		
-		JButton btnEditSQLiteDB = new JButton("Unlock Database");
-		btnEditSQLiteDB.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
+			});
+			btnStartLoad.setBounds(905, 479, 135, 29);
+			panel_Loader.add(btnStartLoad);
 			
-				try {
-					SqliteManager.closeConnection();
-					MessageBox.show(frame, "Database unlocked. Path is: \n" + SqliteManager.getDbPath(), "Unlock Database");
-				} catch (SQLException e) {
-					Log.logException(e);
-				}	
-			}
-		});
-		btnEditSQLiteDB.setBounds(181, 464, 163, 29);
-		panel_Files.add(btnEditSQLiteDB);
+			JLabel lblFileStaging = new JLabel("Files Staged:");
+			lblFileStaging.setBounds(6, 161, 1034, 16);
+			panel_Loader.add(lblFileStaging);
+			
+			JLabel lblFileLoading = new JLabel("Data Staged:");
+			lblFileLoading.setBounds(6, 208, 1034, 16);
+			panel_Loader.add(lblFileLoading);
+			
+			JLabel lblNewLabel_6 = new JLabel("Files staged:");
+			lblNewLabel_6.setHorizontalAlignment(SwingConstants.RIGHT);
+			lblNewLabel_6.setBounds(57, 92, 113, 16);
+			panel_Loader.add(lblNewLabel_6);
+			
+			JLabel lblNewLabel_6_2 = new JLabel("GB staged:");
+			lblNewLabel_6_2.setHorizontalAlignment(SwingConstants.RIGHT);
+			lblNewLabel_6_2.setBounds(59, 120, 113, 16);
+			panel_Loader.add(lblNewLabel_6_2);
+			
+			JLabel lblFilesStaged = new JLabel("0");
+			lblFilesStaged.setBounds(194, 92, 373, 16);
+			panel_Loader.add(lblFilesStaged);
+			
+			JLabel lblGbStaged = new JLabel("0");
+			lblGbStaged.setBounds(194, 120, 373, 16);
+			panel_Loader.add(lblGbStaged);
+			
+			JLabel lblNewLabel_6_3 = new JLabel("Staging threads:");
+			lblNewLabel_6_3.setHorizontalAlignment(SwingConstants.RIGHT);
+			lblNewLabel_6_3.setBounds(57, 64, 115, 16);
+			panel_Loader.add(lblNewLabel_6_3);
+			
+			JLabel lblStagingThreads = new JLabel("0");
+			lblStagingThreads.setBounds(194, 64, 373, 16);
+			panel_Loader.add(lblStagingThreads);
+			
+		    fileStagerTimer = new Timer(100, new ActionListener() {
+		        public void actionPerformed(ActionEvent evt) {
+
+		        	lblGbStaged.setText(Double.toString(FileLoader.getGigabytesStaged()));
+		        	lblFilesStaged.setText(Long.toString(FileLoader.getFilesStaged()));
+		       		lblStagingThreads.setText(Integer.toString(FileLoader.threadsStaging()));
+		       		progressBarFileStaging.setValue((int)FileLoader.getFilesStaged());
+		       		progressBarGBStaging.setValue((int)(((double)FileLoader.getBytesStaged() / (double)bytesToStage) * 1000.0));
+		       		btnStartLoad.setEnabled(!FileLoader.isRunning());
+		       		btnStopLoad.setEnabled(FileLoader.isRunning() && !FileLoader.isStopped());
+		        	if (!FileLoader.isRunning()) {
+		        		fileStagerTimer.stop();
+		        		MessageBox.show(frame, "Staged all files.", "Staging Complete");
+		        	}
+		        }
+		    });
+			
 	}
+	
+	
 	
 /*******************************************************************************************************************/
 	
@@ -1015,10 +1023,10 @@ public class MainForm {
 		snowflakeConnection.setUser(StateControl.getSnowflakeLogin());
 		
 		try {
-                        //Properties props = new Properties();			<------------- Multi-Factor Authentication options.
+			//This works with built-in Snowflake DUO MFA. Additional support for MFA.
+			//---------> //Properties props = new Properties(); <------------- Multi-Factor Authentication.
 			//props.put("passcode", "12345678");
 			//snowflakeConnection.setConnectionProperties(props);
-			//Snowflake built-in Duo MFA works without requirements to add properties to the connection
 			
 			snowflakeConnection.getConnection();
 			snowflakeConnectionStatus.setText("Connected to Snowflake.");
@@ -1038,6 +1046,10 @@ public class MainForm {
 			StateControl.connectionStatus(false);
 			err.printStackTrace();
 		} catch (IOException err) {
+			snowflakeConnectionStatus.setText(err.getMessage());
+			StateControl.connectionStatus(false);
+			err.printStackTrace();
+		} catch (ClassNotFoundException err) {
 			snowflakeConnectionStatus.setText(err.getMessage());
 			StateControl.connectionStatus(false);
 			err.printStackTrace();
