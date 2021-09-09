@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Snowflake Computing Inc. All rights reserved.
+ * Copyright (c) 2020, 2021 Snowflake Computing Inc. All rights reserved.
  */
 
 package com.snowflake.community.sfloader;
@@ -36,7 +36,9 @@ public class SqliteManager {
 			} else if(OperatingSystem.isWindows()) {
 				dbDirectory = WIN_IDE_PATH;
 			}
+			Log.out("Database directory for development environment is " + dbDirectory);
 		} else {
+			Log.out("Reflection detected app is running in the non-development environment.");
 			dbDirectory = Reflection.getJarDirectory() + File.separator + "db";
 			Log.out("Reflection detected JAR file directory at " + dbDirectory);
 		}
@@ -53,7 +55,9 @@ public class SqliteManager {
 				getConnection();
 				CreateDatabase();
 				Log.log("SQLite database objects successfully created.");
-			} catch (Exception e) {
+			} catch (SQLException e) {
+				Log.logException(e);
+			} catch (ClassNotFoundException e) {
 				Log.logException(e);
 			}
 		} else {
@@ -63,8 +67,17 @@ public class SqliteManager {
 				} 
 			catch (SQLException e) {
 				Log.logException(e);
+			} catch (ClassNotFoundException e) {
+				Log.logException(e);
 			}
 		}
+		int cleanupClaims   = executeUpdate("update FILE_INGESTION_CONTROL set STAGING_STATUS = null where STAGING_STATUS = 'STAGING';");
+		int cleanupOwners = executeUpdate("update FILE_INGESTION_CONTROL set STAGING_OWNER_ID = null where STAGING_OWNER_ID is not null;");
+		
+		if (cleanupClaims > 0 || cleanupOwners > 0) {
+			Log.log("Abnormal shutdown cleanup on " + cleanupClaims + " claims and " + cleanupOwners + " ownership assignments.");
+		}
+		
 	}
 	
 	public static String getStoredProperty(String key) {
@@ -104,6 +117,18 @@ public class SqliteManager {
 	public static boolean execute(PreparedStatement pstmt) throws SQLException {
 		connect();
 		return pstmt.execute();
+	}
+	
+	public static int executeUpdate(String sql) {
+		Statement stmt;
+		try {
+	        connect();
+			stmt = conn.createStatement();
+			return stmt.executeUpdate(sql);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return -1;
+		}
 	}
 	
 	public static String getSingleValueQuery(String columnName, String sql) {
@@ -190,14 +215,15 @@ public class SqliteManager {
 				"and     STAGING_TRY_COUNT < 3;");	
 	}
 	
-	private static Connection getSQLiteConnection() throws SQLException {	
+	private static Connection getSQLiteConnection() throws SQLException, ClassNotFoundException {	
+		Class.forName("org.sqlite.JDBC");
 	    String url = "jdbc:sqlite:" + dbPath;
         conn = DriverManager.getConnection(url);
         Log.out("Connected to SQLite at: " + url);
         return conn;
 	}
 	
-	public static Connection getConnection() throws SQLException {
+	public static Connection getConnection() throws SQLException, ClassNotFoundException {
 		if (isConnected()) {
 			return conn; 
 		}
@@ -221,8 +247,14 @@ public class SqliteManager {
 	}
 
 	private static void connect() throws SQLException {
+		Log.debug(Log.DEBUG_LEVEL_VERBOSE, "Checking for connection to SQLite database at " + dbPath);
 		if (!isConnected()) {
-			getConnection();
+			Log.debug(Log.DEBUG_LEVEL_PROLIX, "Connecting to SQLite database at " + dbPath);
+			try {
+				getConnection();
+			} catch (ClassNotFoundException | SQLException e) {
+				Log.logException(e);
+			}
 		}
 	}
 }
